@@ -1,5 +1,7 @@
 import os
 
+from google import genai
+from google.genai import types
 from config import validate, Path_type
 
 def write_file(working_directory, file_path, content): 
@@ -19,3 +21,24 @@ def write_file(working_directory, file_path, content):
             return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
     except Exception as e: 
         return f'Error: {e}'
+
+
+schema_write_file = types.FunctionDeclaration(
+    name="write_file",
+    description="Writes the provided content to a specified file. If file doesn't exist then will create the file and then write the content to that file. If there is already content in that file then it will simply overwrite the existing content with the newly provided content.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="File path of the file to write to. May be the absolute path, relative path, or simply the name of the file in which the path is assumed to be the current working directory."
+            ),
+            "content": types.Schema(
+                type=types.Type.STRING,
+                description="the desired content for the file specified."
+            ),
+        },
+        required=["file_path"]
+    ),
+   
+)

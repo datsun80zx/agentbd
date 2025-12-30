@@ -11,7 +11,7 @@ def validate(working_directory, path_or_file, path_type):
         case Path_type.FILE: 
             valid_target_file = os.path.commonpath([working_directory, target]) == working_directory
             if not valid_target_file: 
-                raise RuntimeError(f'Error: Cannot read "{path_or_file}" as it is outside the permitted working directory')
+                raise RuntimeError(f'Error: Cannot execute "{path_or_file}" as it is outside the permitted working directory')
             
             if not os.path.isfile(target): 
                 raise RuntimeError(f'Error: File not found or is not a regular file: "{path_or_file}"')

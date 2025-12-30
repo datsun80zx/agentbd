@@ -3,6 +3,8 @@ import argparse
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from prompts import system_prompt
+from functions.call_function import available_functions
 
 def main():
     load_dotenv()
@@ -20,7 +22,10 @@ def main():
     client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
         model='gemini-2.5-flash',
-        contents=messages
+        contents=messages,
+        config=types.GenerateContentConfig(
+            tools=[available_functions],
+            system_instruction=system_prompt),
     )
     if response.usage_metadata == None: 
         raise RuntimeError("usage metadata returned as none, API request most likely failed.")
@@ -34,7 +39,11 @@ def main():
         print(f"Response tokens: {tokens_response}")
         print(f"{response.text}") 
 
-    print(f"{response.text}")
+    if response.function_calls == None: 
+        print(f"{response.text}")
+    else: 
+        for obj in response.function_calls: 
+            print(f"Calling function: {obj.name}({obj.args})")
 
 
 
