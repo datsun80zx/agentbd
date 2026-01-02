@@ -20,43 +20,43 @@ def main():
     messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
 
     client = genai.Client(api_key=api_key)
+    generate_model_content(client, messages, args.verbose)
+    
+
+def generate_model_content(client, messages, verbose):
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
-        contents=messages,
-        config=types.GenerateContentConfig(
-            tools=[available_functions],
-            system_instruction=system_prompt),
-    )
+            model='gemini-2.5-flash',
+            contents=messages,
+            config=types.GenerateContentConfig(
+                tools=[available_functions],
+                system_instruction=system_prompt),
+        )
     if response.usage_metadata == None: 
         raise RuntimeError("usage metadata returned as none, API request most likely failed.")
     
     tokens_sent = response.usage_metadata.prompt_token_count
     tokens_response = response.usage_metadata.candidates_token_count
 
-    if args.verbose:
-        print(f"User prompt: {args.user_prompt}")
+    if verbose:
         print(f"Prompt tokens: {tokens_sent}")
         print(f"Response tokens: {tokens_response}")
-        # print(f"{response.text}") 
 
     if response.function_calls == None: 
         print(f"{response.text}")
-    else: 
-        list_func_results = []
-        for obj in response.function_calls:
-            function_call_result = call_function(obj, args.verbose)
-            if len(function_call_result.parts) == 0: 
-                raise Exception(f"Error content object parts list is empty")
-            elif function_call_result.parts[0].function_response is None: 
-                raise Exception(f"Error first item in list of parts is None")
-            elif function_call_result.parts[0].function_response.response is None: 
-                raise Exception(f"Error: response is None")
-            else: 
-                list_func_results.append(function_call_result.parts[0])
-                if args.verbose: 
-                    print(f" -> {function_call_result.parts[0].function_response.response}")
-
-
+        return 
+    list_func_results = []
+    for obj in response.function_calls:
+        function_call_result = call_function(obj, verbose)
+        if len(function_call_result.parts) == 0: 
+            raise Exception(f"Error content object parts list is empty")
+        elif function_call_result.parts[0].function_response is None: 
+            raise Exception(f"Error first item in list of parts is None")
+        elif function_call_result.parts[0].function_response.response is None: 
+            raise Exception(f"Error: response is None")
+        else: 
+            list_func_results.append(function_call_result.parts[0])
+            if verbose: 
+                print(f" -> {function_call_result.parts[0].function_response.response}")
 
 if __name__ == "__main__":
     main()
